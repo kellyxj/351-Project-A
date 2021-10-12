@@ -4,7 +4,49 @@ glsl = require("glslify");
 var VSHADER_SOURCE = glsl(["#define GLSLIFY 1\nattribute vec4 a_Position;\n  attribute vec4 a_Color;\n  uniform mat4 u_MvpMatrix;\n  uniform mat4 u_ModelMatrix;\n  varying vec4 v_Color;\n  void main() {\n    gl_Position = u_MvpMatrix * u_ModelMatrix * a_Position;\n    v_Color = a_Color;\n  }"]);
 var FSHADER_SOURCE = glsl(["#ifdef GL_ES\n  precision mediump float;\n#define GLSLIFY 1\n\n  #endif\n  varying vec4 v_Color;\n  void main() {\n    gl_FragColor = v_Color;\n  }"]);
 
-var ANGLE_STEP = 45.0;
+var ANGLE_STEP = [45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0];
+var masterSpeed = 1.0;
+const armSpeeds = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+var eyeAngle = 240.0;
+
+var speedSlider = document.getElementById("masterSpeedController")
+speedSlider.oninput = function() {
+  masterSpeed = parseFloat(this.value)/100
+}
+
+var arm0Slider = document.getElementById("arm0Controller")
+arm0Slider.oninput = function() {
+  armSpeeds[0] = parseFloat(this.value)/100
+}
+var arm1Slider = document.getElementById("arm1Controller")
+arm1Slider.oninput = function() {
+  armSpeeds[1] = parseFloat(this.value)/100
+}
+var arm2Slider = document.getElementById("arm2Controller")
+arm2Slider.oninput = function() {
+  armSpeeds[2] = parseFloat(this.value)/100
+}
+var arm3Slider = document.getElementById("arm3Controller")
+arm3Slider.oninput = function() {
+  armSpeeds[3] = parseFloat(this.value)/100
+}
+var arm4Slider = document.getElementById("arm4Controller")
+arm4Slider.oninput = function() {
+  armSpeeds[4] = parseFloat(this.value)/100
+}
+var arm5Slider = document.getElementById("arm5Controller")
+arm5Slider.oninput = function() {
+  armSpeeds[5] = parseFloat(this.value)/100
+}
+var arm6Slider = document.getElementById("arm6Controller")
+arm6Slider.oninput = function() {
+  armSpeeds[0] = parseFloat(this.value)/100
+}
+var arm7Slider = document.getElementById("arm7Controller")
+arm7Slider.oninput = function() {
+  armSpeeds[0] = parseFloat(this.value)/100
+}
+
 
 function main() {
   // Retrieve <canvas> element
@@ -44,7 +86,7 @@ function main() {
   // Set the eye point and the viewing volume
   var mvpMatrix = new Matrix4();
   mvpMatrix.setPerspective(30, 1, 1, 100);
-  mvpMatrix.lookAt(3, 3, 7, 0, 0, 0, 0, 1, 0);
+  mvpMatrix.lookAt(10*Math.cos(eyeAngle), 3, 10*Math.sin(eyeAngle), 0, 0, 0, 0, 1, 0);
 
   // Pass the model view projection matrix to u_MvpMatrix
   gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix.elements);
@@ -57,15 +99,16 @@ function main() {
     return;
   }
 
-  var currentAngle = 0.0;
+  //array of length 8. Tracks the angle of each arm separately
+  var currentAngles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
   // Model matrix
   var modelMatrix = new Matrix4();
 
   // Start drawing
   var tick = function() {
     initVertexBuffers(gl);
-    currentAngle = animate(currentAngle);  // Update the rotation angle
-    draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix);   // Draw the triangle
+    currentAngles = animate(currentAngles).slice(0);  // Update the rotation angle
+    draw(gl, n, currentAngles, modelMatrix, u_ModelMatrix);
     requestAnimationFrame(tick, canvas);   // Request that the browser ?calls tick
   };
   tick();
@@ -146,7 +189,7 @@ function initVertexBuffers(gl) {
   return indices.length;
 }
 
-function draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix) {
+function draw(gl, n, currentAngles, modelMatrix, u_ModelMatrix) {
   //==============================================================================
     // Clear <canvas>
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -193,7 +236,7 @@ function draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix) {
 
       modelMatrix.scale(0.4, 0.4, 0.4);
 
-      modelMatrix.rotate(currentAngle, 0, 0, 1);
+      modelMatrix.rotate(currentAngles[i], 0, 0, 1);
 
       modelMatrix.translate(0.0, -1.0 ,0.0);		
 
@@ -206,7 +249,7 @@ function draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix) {
 
       modelMatrix.scale(0.75, 0.75, 0.75);
 
-      modelMatrix.rotate(-currentAngle*0.3, 0,0,1);
+      modelMatrix.rotate(-currentAngles[i]*0.3, 0,0,1);
 
       modelMatrix.translate(0.0, -1.0, 0);
 
@@ -219,7 +262,7 @@ function draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix) {
 
       modelMatrix.scale(0.75, 0.75, 0.75);
 
-      modelMatrix.rotate(-currentAngle*0.5, 0, 0, 1);
+      modelMatrix.rotate(-currentAngles[i]*0.5, 0, 0, 1);
 
       modelMatrix.translate(0.0, -1.0, 0);
 
@@ -232,7 +275,7 @@ function draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix) {
 
       modelMatrix.scale(0.75, 0.75, 0.75);
 
-      modelMatrix.rotate(-currentAngle*0.3, 0, 0, 1);
+      modelMatrix.rotate(-currentAngles[i]*0.3, 0, 0, 1);
 
       modelMatrix.translate(0.0, -1.0, 0);
 
@@ -245,7 +288,7 @@ function draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix) {
 
       modelMatrix.scale(0.75, 0.75, 0.75);
 
-      modelMatrix.rotate(currentAngle*0.1, 0, 0, 1);
+      modelMatrix.rotate(currentAngles[i]*0.1, 0, 0, 1);
 
       modelMatrix.translate(0.0, -1.0, 0);
 
@@ -257,19 +300,21 @@ function draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix) {
 
 var g_last = Date.now();
 
-function animate(angle) {
+function animate(angles) {
 //==============================================================================
   // Calculate the elapsed time
   var now = Date.now();
   var elapsed = now - g_last;
   g_last = now;
-  
+  for(i = 0; i < 8; i++) {
   // Update the current rotation angle (adjusted by the elapsed time)
-  if(angle >   5.0 && ANGLE_STEP > 0) ANGLE_STEP = -ANGLE_STEP;
-  if(angle <  -105.0 && ANGLE_STEP < 0) ANGLE_STEP = -ANGLE_STEP;
+    if(angles[i] >   5.0 && ANGLE_STEP[i] > 0) ANGLE_STEP[i] = -ANGLE_STEP[i];
+    if(angles[i] <  -105.0 && ANGLE_STEP[i] < 0) ANGLE_STEP[i] = -ANGLE_STEP[i];
   
-  var newAngle = angle + (ANGLE_STEP * elapsed) / 1000.0;
-  return newAngle %= 360;
+    var newAngle = angles[i] + masterSpeed*armSpeeds[i]*(ANGLE_STEP[i] * elapsed) / 1000.0;
+    angles[i] = newAngle %= 360;
+  }
+  return angles
 }
     
 main();

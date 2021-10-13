@@ -7,11 +7,15 @@ var FSHADER_SOURCE = glsl(["#ifdef GL_ES\n  precision mediump float;\n#define GL
 var ANGLE_STEP = [45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0];
 var masterSpeed = 1.0;
 const armSpeeds = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
-var eyeAngle = 240.0;
+var eyeAngle = 15.0;
+
+//controls movement of head
 var headScale = 1.0;
 var headScaleStep = 0.1;
 
-const randomGradient = [0.0, 0.0, 0.0]
+//adds random animation to colors
+var gradientOn = 0;
+const randomGradient = new Array(96).fill(0);
 
 var speedSlider = document.getElementById("masterSpeedController")
 speedSlider.oninput = function() {
@@ -51,6 +55,15 @@ arm7Slider.oninput = function() {
   armSpeeds[0] = parseFloat(this.value)/100
 }
 
+var colorAnimator = document.getElementById("animateColors")
+colorAnimator.oninput = function() {
+  if(this.value == "on") {
+    gradientOn = 1;
+  }
+  else {
+    gradientOn = 0;
+  }
+}
 
 function main() {
   // Retrieve <canvas> element
@@ -95,7 +108,7 @@ function main() {
   // Set the eye point and the viewing volume
   var mvpMatrix = new Matrix4();
   mvpMatrix.setPerspective(30, 1, 1, 100);
-  mvpMatrix.lookAt(10*Math.cos(eyeAngle), 3, 10*Math.sin(eyeAngle), 0, 0, 0, 0, 1, 0);
+  mvpMatrix.lookAt(10*Math.cos(Math.PI*eyeAngle/180), 3, 10*Math.sin(Math.PI*eyeAngle/180), 0, 0, 0, 0, 1, 0);
 
   // Pass the model view projection matrix to u_MvpMatrix
   gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix.elements);
@@ -131,23 +144,17 @@ function initArmVertexBuffers(gl) {
     verticesColors[i] = 0.4*Math.cos(Math.PI * i/18)//x coord
     verticesColors[i+1] = 1.0 //y coord
     verticesColors[i+2] = 0.4*-Math.sin(Math.PI * i/18) //z coord
-    verticesColors[i+3] = 153/255+i/360+randomGradient[0]//R
-    verticesColors[i+4] = 50/255+i/360+0.9*randomGradient[1]//G
-    verticesColors[i+5] = 204/255+i/360+0.8*randomGradient[2]//B
-    //verticesColors[i+3] = 0.1*(Math.sin(i*Date.now()/10000.0)+1)/2;
-    //verticesColors[i+4] = 0.9*(Math.sin(i*Date.now()/10000.0)+1)/2;
-    //verticesColors[i+5] = 0.9*(Math.sin(i*Date.now()/10000.0)+1)/2;
+    verticesColors[i+3] = 153/255+i/360+gradientOn*randomGradient[i/2]//R
+    verticesColors[i+4] = 50/255+i/360+gradientOn*randomGradient[i/2+1]//G
+    verticesColors[i+5] = 204/255+i/360+gradientOn*randomGradient[i/2+2]//B
   }
   for(i = 36; i < 72; i+=6){
     verticesColors[i] = 0.3*Math.cos(Math.PI * i/18) //x coord
     verticesColors[i+1] = -1.0//y coord
     verticesColors[i+2] = 0.3*-Math.sin(Math.PI * i/18) //z coord
-    verticesColors[i+3] = 153/255+i/360+0.6*randomGradient[0]//R
-    verticesColors[i+4] = 50/255+i/360+0.5*randomGradient[1]//G
-    verticesColors[i+5] = 204/255+i/360+0.4*randomGradient[2]//B
-    //verticesColors[i+3] = 0.1*(Math.sin(i*Date.now()/10000.0)+1)/2;
-    //verticesColors[i+4] = 0.9*(Math.sin(i*Date.now()/10000.0)+1)/2;
-    //verticesColors[i+5] = 0.9*(Math.sin(i*Date.now()/10000.0)+1)/2;
+    verticesColors[i+3] = 153/255+i/360+gradientOn*randomGradient[i/2]//R
+    verticesColors[i+4] = 50/255+i/360+gradientOn*randomGradient[i/2+1]//G
+    verticesColors[i+5] = 204/255+i/360+gradientOn*randomGradient[i/2+2]//B
   }
 
   // Indices of the vertices
@@ -206,17 +213,17 @@ function initHeadVertexBuffers(gl) {
     verticesColors[i] = Math.cos(Math.PI * i/30)//x coord
     verticesColors[i+1] = 1.0 //y coord
     verticesColors[i+2] = -Math.sin(Math.PI * i/30) //z coord
-    verticesColors[i+3] = 153/255+i/600+randomGradient[0]//R
-    verticesColors[i+4] = 50/255+i/600+0.9*randomGradient[1]//G
-    verticesColors[i+5] = 204/255+i/600+0.8*randomGradient[2]//B
+    verticesColors[i+3] = 153/255+i/300+gradientOn*randomGradient[36+i/2]//R
+    verticesColors[i+4] = 50/255+i/300+gradientOn*randomGradient[36+i/2]//G
+    verticesColors[i+5] = 204/255+i/300+gradientOn*randomGradient[36+i/2]//B
   }
   for(i = 60; i < 120; i+=6){
     verticesColors[i] = 0.9*Math.cos(Math.PI * i/30)//x coord
     verticesColors[i+1] = -1.0 //y coord
     verticesColors[i+2] = -0.9*Math.sin(Math.PI * i/30) //z coord
-    verticesColors[i+3] = 153/255+i/600+0.7*randomGradient[0]//R
-    verticesColors[i+4] = 50/255+i/600+0.6*randomGradient[1]//G
-    verticesColors[i+5] = 204/255+i/600+0.5*randomGradient[2]//B
+    verticesColors[i+3] = 153/255+i/600+gradientOn*randomGradient[36+i/2]//R
+    verticesColors[i+4] = 50/255+i/600+gradientOn*randomGradient[36+i/2]//G
+    verticesColors[i+5] = 204/255+i/600+gradientOn*randomGradient[36+i/2]//B
   }
   // Indices of the vertices
   var indices = new Uint8Array([
@@ -440,7 +447,7 @@ function animate(angles) {
   if(headScale > 1.2 && headScaleStep > 0) headScaleStep = -headScaleStep;
   if(headScale < 1.0 && headScaleStep < 0) headScaleStep = -headScaleStep;
   headScale += masterSpeed * headScaleStep * elapsed/1000.0;
-  for(i = 0; i < 3; i++) {
+  for(i = 0; i < 96; i++) {
     randomGradient[i] += Math.random() > 0.5 ? .01*elapsed/100 : -.01*elapsed/100;
   }
   return angles

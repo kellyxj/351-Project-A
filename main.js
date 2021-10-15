@@ -6,7 +6,7 @@ var FSHADER_SOURCE = glsl.file("./shaders/fragmentShader.frag");
 var ANGLE_STEP = [45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0];
 var masterSpeed = 1.0;
 const armSpeeds = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
-var eyeAngle = 15.0;
+var eyeAngle = 50;
 
 //controls movement of head
 var headScale = 1.0;
@@ -82,14 +82,9 @@ function main() {
   }
 
   // Set the vertex coordinates and color
-  var n = initArmVertexBuffers(gl);
+  var n = initVertexBuffers(gl);
   if (n < 0) {
-    console.log('Failed to set the vertex information for arms');
-    return;
-  }
-  var m = initHeadVertexBuffers(gl);
-  if(m < 0) {
-    console.log("Failed to set vertex information for head")
+    console.log('Failed to set the vertex information');
     return;
   }
 
@@ -108,6 +103,7 @@ function main() {
   var mvpMatrix = new Matrix4();
   mvpMatrix.setPerspective(30, 1, 1, 100);
   mvpMatrix.lookAt(10*Math.cos(Math.PI*eyeAngle/180), 3, 10*Math.sin(Math.PI*eyeAngle/180), 0, 0, 0, 0, 1, 0);
+  //mvpMatrix.lookAt(0, 5, 0, 0, 0, 0, 0, 0, 1);
 
   // Pass the model view projection matrix to u_MvpMatrix
   gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix.elements);
@@ -127,125 +123,97 @@ function main() {
 
   // Start drawing
   var tick = function() {
-    initArmVertexBuffers(gl);
     currentAngles = animate(currentAngles).slice(0);  // Update the rotation angle
     drawArms(gl, n, currentAngles, modelMatrix, u_ModelMatrix);
-    initHeadVertexBuffers(gl);
-    drawHead(gl, m, headScale, modelMatrix, u_ModelMatrix);
+    drawHead(gl, n, headScale, modelMatrix, u_ModelMatrix);
     requestAnimationFrame(tick, canvas);   // Request that the browser ?calls tick
   };
   tick();
 }
 
-function initArmVertexBuffers(gl) {
-  var verticesColors = new Float32Array(72);
+function initVertexBuffers(gl) {
+  var verticesColors = new Float32Array(192);
+
+  //arm segment
   for(i = 0; i < 36; i+=6){
     verticesColors[i] = 0.4*Math.cos(Math.PI * i/18)//x coord
     verticesColors[i+1] = 1.0 //y coord
     verticesColors[i+2] = 0.4*-Math.sin(Math.PI * i/18) //z coord
-    verticesColors[i+3] = 153/255+i/360+gradientOn*randomGradient[i/2]//R
-    verticesColors[i+4] = 50/255+i/360+gradientOn*randomGradient[i/2+1]//G
-    verticesColors[i+5] = 204/255+i/360+gradientOn*randomGradient[i/2+2]//B
+    //verticesColors[i+3] = 153/255+i/360//R
+    //verticesColors[i+4] = 50/255+i/360//G
+    //verticesColors[i+5] = 204/255+i/360//B
+    verticesColors[i+3] = ((i-24)/36)%1.0//R
+    verticesColors[i+4] = ((i-48)/36)%1.0//G
+    verticesColors[i+5] = i/36//B
   }
   for(i = 36; i < 72; i+=6){
     verticesColors[i] = 0.3*Math.cos(Math.PI * i/18) //x coord
     verticesColors[i+1] = -1.0//y coord
     verticesColors[i+2] = 0.3*-Math.sin(Math.PI * i/18) //z coord
-    verticesColors[i+3] = 153/255+i/360+gradientOn*randomGradient[i/2]//R
-    verticesColors[i+4] = 50/255+i/360+gradientOn*randomGradient[i/2+1]//G
-    verticesColors[i+5] = 204/255+i/360+gradientOn*randomGradient[i/2+2]//B
+    //verticesColors[i+3] = 153/255+i/360//R
+    //verticesColors[i+4] = 50/255+i/360//G
+    //verticesColors[i+5] = 204/255+i/360//B
+    verticesColors[i+3] = ((i-24)/72)%1.0//R
+    verticesColors[i+4] = ((i-48)/72)%1.0//G
+    verticesColors[i+5] = i/72//B
   }
 
+  //head segment
+  for(i = 72; i < 132; i+=6){
+    verticesColors[i] = Math.cos(Math.PI * (i-72)/30)//x coord
+    verticesColors[i+1] = 1.0 //y coord
+    verticesColors[i+2] = -Math.sin(Math.PI * (i-72)/30) //z coord
+    //verticesColors[i+3] = 153/255+(i-72)/300//R
+    //verticesColors[i+4] = 50/255+(i-72)/300//G
+    //verticesColors[i+5] = 204/255+(i-72)/300//B
+    verticesColors[i+3] = ((i-24)/60)%1.0//R
+    verticesColors[i+4] = ((i-48)/60)%1.0//G
+    verticesColors[i+5] = (i-72)/60//B
+  }
+  for(i = 132; i < 192; i+=6){
+    verticesColors[i] = 0.9*Math.cos(Math.PI * (i-72)/30)//x coord
+    verticesColors[i+1] = -1.0 //y coord
+    verticesColors[i+2] = -0.9*Math.sin(Math.PI * (i-72)/30) //z coord
+    //verticesColors[i+3] = 153/255+(i-72)/600//R
+    //verticesColors[i+4] = 50/255+(i-72)/600//G
+    //verticesColors[i+5] = 204/255+(i-72)/600//B
+    verticesColors[i+3] = ((i-24)/120)%1.0//R
+    verticesColors[i+4] = ((i-48)/120)%1.0//G
+    verticesColors[i+5] = (i-72)/120//B
+  }
   // Indices of the vertices
   var indices = new Uint8Array([
-    0, 11, 6,   0, 6, 7,    // sides
-    0, 7, 1,   1, 7, 8,    
-    1, 8, 2,   2, 8, 9,    
-    2, 9, 3,   3, 9, 10,    
-    3, 10, 4,   4, 10, 11,    
-    4, 11, 5,   5, 11, 0,
-    0, 1, 2,    2, 3, 0,    //top
-    3, 4, 0,    4, 5, 0,
-    6, 7, 8,    8, 9, 6,    //bottom
-    9, 10, 6,    10, 11, 6     
+    0, 11, 6,     0, 6, 7,    // sides of arm segment
+    0, 7, 1,      1, 7, 8,    
+    1, 8, 2,      2, 8, 9,    
+    2, 9, 3,      3, 9, 10,    
+    3, 10, 4,     4, 10, 11,    
+    4, 11, 5,     5, 11, 0,
+    0, 1, 2,      2, 3, 0,    //top of arm segment
+    3, 4, 0,      4, 5, 0,
+    6, 7, 8,      8, 9, 6,    //bottom of arm segment
+    9, 10, 6,     10, 11, 6,   
+    12, 22, 23,   12, 23, 13,    // sides of head segment
+    13, 23, 24,   13, 24, 14,    
+    14, 24, 25,   14, 25, 15,    
+    15, 25, 26,   15, 26, 16,    
+    16, 26, 27,   16, 27, 17,    
+    17, 27, 28,   17, 28, 18,
+    18, 28, 29,   18, 29, 19,    
+    19, 29, 30,   19, 30, 20,
+    20, 30, 31,   20, 31, 21,    
+    21, 31, 22,   21, 22, 12,
+    12, 13, 14,   12, 14, 15,   // top of head segment
+    12, 15, 16,   12, 16, 17,
+    12, 17, 18,   12, 18, 19,
+    12, 19, 20,   12, 20, 21,   
+    22, 23, 24,   22, 24, 25,   // bottom of head segment
+    22, 25, 26,   22, 26, 27,
+    22, 27, 28,   22, 28, 29,
+    22, 29, 30,   22, 30, 31
  ]);
 
   // Create a buffer object
-  var vertexColorBuffer = gl.createBuffer();
-  var indexBuffer = gl.createBuffer();
-  if (!vertexColorBuffer || !indexBuffer) {
-    return -1;
-  }
-
-  // Write the vertex coordinates and color to the buffer object
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, verticesColors, gl.STATIC_DRAW);
-
-  var FSIZE = verticesColors.BYTES_PER_ELEMENT;
-  // Assign the buffer object to a_Position and enable the assignment
-  var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
-  if(a_Position < 0) {
-    console.log('Failed to get the storage location of a_Position');
-    return -1;
-  }
-  gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, FSIZE * 6, 0);
-  gl.enableVertexAttribArray(a_Position);
-  // Assign the buffer object to a_Color and enable the assignment
-  var a_Color = gl.getAttribLocation(gl.program, 'a_Color');
-  if(a_Color < 0) {
-    console.log('Failed to get the storage location of a_Color');
-    return -1;
-  }
-  gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, FSIZE * 6, FSIZE * 3);
-  gl.enableVertexAttribArray(a_Color);
-
-  // Write the indices to the buffer object
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-
-  return indices.length;
-}
-
-function initHeadVertexBuffers(gl) {
-  var verticesColors = new Float32Array(120);
-  for(i = 0; i < 60; i+=6){
-    verticesColors[i] = Math.cos(Math.PI * i/30)//x coord
-    verticesColors[i+1] = 1.0 //y coord
-    verticesColors[i+2] = -Math.sin(Math.PI * i/30) //z coord
-    verticesColors[i+3] = 153/255+i/300+gradientOn*randomGradient[36+i/2]//R
-    verticesColors[i+4] = 50/255+i/300+gradientOn*randomGradient[36+i/2]//G
-    verticesColors[i+5] = 204/255+i/300+gradientOn*randomGradient[36+i/2]//B
-  }
-  for(i = 60; i < 120; i+=6){
-    verticesColors[i] = 0.9*Math.cos(Math.PI * i/30)//x coord
-    verticesColors[i+1] = -1.0 //y coord
-    verticesColors[i+2] = -0.9*Math.sin(Math.PI * i/30) //z coord
-    verticesColors[i+3] = 153/255+i/600+gradientOn*randomGradient[36+i/2]//R
-    verticesColors[i+4] = 50/255+i/600+gradientOn*randomGradient[36+i/2]//G
-    verticesColors[i+5] = 204/255+i/600+gradientOn*randomGradient[36+i/2]//B
-  }
-  // Indices of the vertices
-  var indices = new Uint8Array([
-    0, 10, 11,   0, 11, 1,    // sides
-    1, 11, 12,   1, 12, 2,    
-    2, 12, 13,   2, 13, 3,    
-    3, 13, 14,   3, 14, 4,    
-    4, 14, 15,   4, 15, 5,    
-    5, 15, 16,   5, 16, 6,
-    6, 16, 17,    6, 17, 7,    
-    7, 17, 18,    7, 18, 8,
-    8, 18, 19,    8, 19, 9,    
-    9, 19, 10,    9, 10, 0,
-    0, 1, 2,      0, 2, 3,   // top
-    0, 3, 4,      0, 4, 5,
-    0, 5, 6,      0, 6, 7,
-    0, 7, 8,      0, 8, 9,   // bottom
-    10, 11, 12,   10, 12, 13,
-    10, 13, 14,   10, 14, 15,
-    10, 15, 16,   10, 16, 17,
-    10, 17, 18,   10, 18, 19
- ]);
-
   var vertexColorBuffer = gl.createBuffer();
   var indexBuffer = gl.createBuffer();
   if (!vertexColorBuffer || !indexBuffer) {
@@ -302,7 +270,7 @@ function drawArms(gl, n, currentAngles, modelMatrix, u_ModelMatrix) {
 
       gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-      gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0);
+      gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
 
       //start second arm segment
       modelMatrix.translate(0.0, -0.9, 0);
@@ -315,7 +283,7 @@ function drawArms(gl, n, currentAngles, modelMatrix, u_ModelMatrix) {
 
       gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-      gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0);
+      gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
 
       //start third arm segment
       modelMatrix.translate(0.0, -0.9, 0);
@@ -328,7 +296,7 @@ function drawArms(gl, n, currentAngles, modelMatrix, u_ModelMatrix) {
 
       gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-      gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0);
+      gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
 
       //start fourth arm segment
       modelMatrix.translate(0.0, -0.9, 0);
@@ -341,7 +309,7 @@ function drawArms(gl, n, currentAngles, modelMatrix, u_ModelMatrix) {
 
       gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-      gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0);
+      gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
 
       //fifth and final arm segment
       modelMatrix.translate(0.0, -0.9, 0);
@@ -354,11 +322,11 @@ function drawArms(gl, n, currentAngles, modelMatrix, u_ModelMatrix) {
 
       gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-      gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0);
+      gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
     }
 }
 
-function drawHead(gl, m, headScale, modelMatrix, u_ModelMatrix) {
+function drawHead(gl, n, headScale, modelMatrix, u_ModelMatrix) {
   //start drawing head by stacking prisms
   modelMatrix.setTranslate(0.0, -0.28, 0.0);
 
@@ -368,7 +336,7 @@ function drawHead(gl, m, headScale, modelMatrix, u_ModelMatrix) {
 
   gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, m, gl.UNSIGNED_BYTE, 0);
+  gl.drawElements(gl.TRIANGLES, n-60, gl.UNSIGNED_BYTE, 60);
 
   modelMatrix.scale(1.1, 1.0, 1.1);
 
@@ -376,7 +344,7 @@ function drawHead(gl, m, headScale, modelMatrix, u_ModelMatrix) {
 
   gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, m, gl.UNSIGNED_BYTE, 0);
+  gl.drawElements(gl.TRIANGLES, n-60, gl.UNSIGNED_BYTE, 60);
 
   modelMatrix.scale(1.05, 1.0, 1.05);
 
@@ -384,7 +352,7 @@ function drawHead(gl, m, headScale, modelMatrix, u_ModelMatrix) {
 
   gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, m, gl.UNSIGNED_BYTE, 0);
+  gl.drawElements(gl.TRIANGLES, n-60, gl.UNSIGNED_BYTE, 60);
 
   modelMatrix.scale(1.08, 3.0, 1.08);
 
@@ -392,7 +360,7 @@ function drawHead(gl, m, headScale, modelMatrix, u_ModelMatrix) {
 
   gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, m, gl.UNSIGNED_BYTE, 0);
+  gl.drawElements(gl.TRIANGLES, n-60, gl.UNSIGNED_BYTE, 60);
 
   modelMatrix.scale(1.00, -1.0, 1.00);
 
@@ -400,7 +368,7 @@ function drawHead(gl, m, headScale, modelMatrix, u_ModelMatrix) {
 
   gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, m, gl.UNSIGNED_BYTE, 0);
+  gl.drawElements(gl.TRIANGLES, n-60, gl.UNSIGNED_BYTE, 60);
 
   modelMatrix.scale(0.95, 0.333, 0.95);
 
@@ -408,7 +376,7 @@ function drawHead(gl, m, headScale, modelMatrix, u_ModelMatrix) {
 
   gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, m, gl.UNSIGNED_BYTE, 0);
+  gl.drawElements(gl.TRIANGLES, n-60, gl.UNSIGNED_BYTE, 60);
 
   modelMatrix.scale(0.95, 1.0, 0.95);
 
@@ -416,7 +384,7 @@ function drawHead(gl, m, headScale, modelMatrix, u_ModelMatrix) {
 
   gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, m, gl.UNSIGNED_BYTE, 0);
+  gl.drawElements(gl.TRIANGLES, n-60, gl.UNSIGNED_BYTE, 60);
 
   modelMatrix.scale(0.90, 1.0, 0.90);
 
@@ -424,7 +392,7 @@ function drawHead(gl, m, headScale, modelMatrix, u_ModelMatrix) {
 
   gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, m, gl.UNSIGNED_BYTE, 0);
+  gl.drawElements(gl.TRIANGLES, n-60, gl.UNSIGNED_BYTE, 60);
 }
 
 var g_last = Date.now();

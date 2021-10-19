@@ -6,13 +6,26 @@ var FSHADER_SOURCE = glsl.file("./shaders/fragmentShader.frag");
 var ANGLE_STEP = [45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0];
 var masterSpeed = 1.0;
 const armSpeeds = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
-var eyeAngle = 90;
+var eyeAngle = 0;
 
 //controls movement of head
 var headScale = 1.0;
 var headScaleStep = 0.1;
 
-var bodyScale = 3.0;
+//globals to control animation of pufferfish
+var bodyScale = 1.0;
+var bodyScaleStep = 0.0;
+var puffed = false;
+
+var finAngle = 0;
+var finAngleStep = 45;
+
+var puffButton = document.getElementById("puffer");
+puffButton.addEventListener("click", () =>{
+  puffed = !puffed;
+  bodyScaleStep = puffed ? 1 : -1;
+  finAngleStep = puffed ? 10 : 45;
+});
 
 //Access HTML slider elements and associate them with the appropriate global variables
 var speedSlider = document.getElementById("masterSpeedController")
@@ -177,7 +190,7 @@ function main() {
     currentAngles = animate(currentAngles).slice(0);  // Update the rotation angle
     drawArms(gl, n, currentAngles, modelMatrix, u_ModelMatrix);
     drawHead(gl, n, headScale, modelMatrix, u_ModelMatrix);
-    //drawPuffer(gl, n, bodyScale, modelMatrix, u_ModelMatrix);
+    drawPuffer(gl, n, bodyScale, modelMatrix, u_ModelMatrix);
     requestAnimationFrame(tick, canvas);   // Request that the browser ?calls tick
   };
   tick();
@@ -405,7 +418,7 @@ function drawHead(gl, n, headScale, modelMatrix, u_ModelMatrix) {
   gl.drawElements(gl.TRIANGLES, 30, gl.UNSIGNED_BYTE, 174)
   //start drawing head by stacking prisms
   modelMatrix.scale(1/0.7, -10, 1/0.7);
-  modelMatrix.translate(0.0, .2, 0.0);
+  modelMatrix.translate(0.0, .15, 0.0);
 
   modelMatrix.scale(1, 0.085, 1);
 
@@ -482,83 +495,140 @@ function drawHead(gl, n, headScale, modelMatrix, u_ModelMatrix) {
 }
 
 function drawPuffer(gl, n, bodyScale, modelMatrix, u_ModelMatrix) {
-  
-  /*modelMatrix.setTranslate(0.0, 0.0, 0.0);
+  modelMatrix.setTranslate(-2, 0, -2);
 
-  modelMatrix.rotate(90, 0, 0, 1);
+  pushMatrix(modelMatrix);
+  //cone for bottom of sphere
+    modelMatrix.rotate(90, 0, 0, 1);
 
-  modelMatrix.scale(0.35*bodyScale, 0.1, 0.35*bodyScale);
+    modelMatrix.scale(0.4*bodyScale, -0.1, 0.4*bodyScale);
 
-  modelMatrix.translate(0.0, 0.5, 0.0);
+    modelMatrix.translate(0, 10, 0);
 
-  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
+    gl.drawElements(gl.TRIANGLES, 30, gl.UNSIGNED_BYTE, 174)
+  //start drawing head by stacking prisms
+    modelMatrix.scale(1, -10, 1);
+    modelMatrix.translate(0.0, .15, 0.0);
 
-  modelMatrix.scale(1.1, 1.0, 1.1);
+    modelMatrix.scale(1, 0.085, 1);
 
-  modelMatrix.translate(0.0, 1.0, 0.0);
+    modelMatrix.translate(0.0, 0.5, 0.0);
 
-  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
+    gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
 
-  modelMatrix.scale(1.05, 1.0, 1.05);
+    modelMatrix.scale(1.1, 1.0, 1.1);
 
-  modelMatrix.translate(0.0, 1.0, 0.0);
+    modelMatrix.translate(0.0, 1.0, 0.0);
 
-  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
+    gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
 
-  modelMatrix.scale(1.08, 3.0, 1.08);
+    modelMatrix.scale(1.05, 1.0, 1.05);
 
-  modelMatrix.translate(0.0, 1.0, 0.0);
+    modelMatrix.translate(0.0, 1.0, 0.0);
 
-  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
+    gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
 
-  modelMatrix.scale(1.00, -1.0, 1.00);
+    modelMatrix.scale(1.08, 3.0, 1.08);
 
-  modelMatrix.translate(0.0, -2.0, 0.0);
+    modelMatrix.translate(0.0, 1.0, 0.0);
 
-  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
+    gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
 
-  modelMatrix.scale(0.95, 0.333, 0.95);
+    modelMatrix.scale(1.00, -1.0, 1.00);
 
-  modelMatrix.translate(0.0, -2.0, 0.0);
+    modelMatrix.translate(0.0, -2.0, 0.0);
 
-  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
+    gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
 
-  modelMatrix.scale(0.95, 1.0, 0.95);
+    modelMatrix.scale(0.95, 0.333, 0.95);
 
-  modelMatrix.translate(0.0, -2.0, 0.0);
+    modelMatrix.translate(0.0, -2.0, 0.0);
 
-  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
+    gl.drawElements(gl.TRIANGLES, n-66, gl.UNSIGNED_BYTE, 60);
 
-  modelMatrix.scale(0.90, 1.0, 0.90);
+    modelMatrix.scale(0.95, 1.0, 0.95);
 
-  modelMatrix.translate(0.0, -2.0, 0.0);
+    modelMatrix.translate(0.0, -2.0, 0.0);
 
-  gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-  gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);*/
-  //draw fins
-  //gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+    gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
 
-  //gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 168);
+    modelMatrix.scale(0.90, 1.0, 0.90);
+
+    modelMatrix.translate(0.0, -2.0, 0.0);
+
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+
+    gl.drawElements(gl.TRIANGLES, 108, gl.UNSIGNED_BYTE, 60);
 
   //cone for top of sphere
-  //gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+    modelMatrix.scale(1, -1, 1);
 
-  //gl.drawElements(gl.TRIANGLES, 30, gl.UNSIGNED_BYTE, 174)
+    modelMatrix.translate(0, 2, 0);
+
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+
+    gl.drawElements(gl.TRIANGLES, 30, gl.UNSIGNED_BYTE, 174);
+
+  modelMatrix = popMatrix();
+  //start drawing fins
+
+  modelMatrix.scale(-0.5, 0.5, 0.5)
+
+  pushMatrix(modelMatrix);
+
+    modelMatrix.translate(-2, 0, 0);
+
+    modelMatrix.rotate(finAngle, 0, 1, 0);
+
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 168)
+
+  modelMatrix = popMatrix();
+
+  pushMatrix(modelMatrix);
+
+    modelMatrix.rotate(90, 0, 1, 0);
+
+    modelMatrix.translate(-bodyScale, 0, 0);
+
+    modelMatrix.rotate(finAngle, 0, 1, 0);
+
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 168)
+
+  modelMatrix = popMatrix();
+
+  pushMatrix(modelMatrix);
+
+    modelMatrix.rotate(-90, 0, 1, 0);
+
+    modelMatrix.translate(-bodyScale, 0, 0);
+
+    modelMatrix.rotate(-finAngle, 0, 1, 0);
+
+    gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 168)
+
+  modelMatrix = popMatrix();
 }
 
 var g_last = Date.now();
@@ -580,6 +650,27 @@ function animate(angles) {
   if(headScale > 1.2 && headScaleStep > 0) headScaleStep = -headScaleStep;
   if(headScale < 1.0 && headScaleStep < 0) headScaleStep = -headScaleStep;
   headScale += masterSpeed * headScaleStep * elapsed/1000.0;
+  if(bodyScale > 2.0 && bodyScaleStep > 0) {
+    if(puffed) {
+      bodyScaleStep = 0;
+    }
+    else {
+      bodyScaleStep = -1;
+    }
+  }
+  if(bodyScale < 1.0 && bodyScaleStep < 0)  {
+    if(!puffed) {
+      bodyScaleStep = 0;
+    }
+    else{
+      bodyScaleStep = 1;
+    }
+  }
+  bodyScale += masterSpeed * bodyScaleStep * elapsed/1000.0;
+
+  if(finAngle >   45.0 && finAngleStep > 0) finAngleStep = -finAngleStep;
+  if(finAngle <  -45.0 && finAngleStep < 0) finAngleStep = -finAngleStep;
+  finAngle = (finAngle+finAngleStep*elapsed/1000) %360;
   return angles
 }
     

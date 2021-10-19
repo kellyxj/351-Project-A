@@ -53,6 +53,11 @@ arm7Slider.oninput = function() {
   armSpeeds[0] = parseFloat(this.value)/100
 }
 
+//globals for handling mouse drag
+var g_isDrag=false;		// mouse-drag: true when user holds down mouse button
+var g_xMclik=0.0;			// last mouse button-down position (in CVV coords)
+var g_yMclik=0.0;   
+
 function main() {
   // Retrieve <canvas> element
   var canvas = document.getElementById('webgl');
@@ -88,10 +93,67 @@ function main() {
     return;
   }
 
+  //CAMERA CONTROLS
+  canvas.addEventListener("mousedown", (ev) => {
+    var rect = ev.target.getBoundingClientRect();	// get canvas corners in pixels
+    var xp = ev.clientX - rect.left;									// x==0 at canvas left edge
+    var yp = canvas.height - (ev.clientY - rect.top);	// y==0 at canvas bottom edge
+//  console.log('myMouseDown(pixel coords): xp,yp=\t',xp,',\t',yp);
+  
+	// Convert to Canonical View Volume (CVV) coordinates too:
+    var x = (xp - canvas.width/2)  / 		// move origin to center of canvas and
+  						  (canvas.width/2);			// normalize canvas to -1 <= x < +1,
+	  var y = (yp - canvas.height/2) /		//										 -1 <= y < +1.
+							  (canvas.height/2);
+	
+	  g_isDrag = true;											// set our mouse-dragging flag
+	  g_xMclik = x;													// record where mouse-dragging began
+	  g_yMclik = y;
+  }); 
+	// (After each 'mousedown' event, browser calls the myMouseDown() fcn.)
+  canvas.addEventListener("mousemove", (ev) => {
+    if(g_isDrag==false) return;				// IGNORE all mouse-moves except 'dragging'
+
+	// Create right-handed 'pixel' coords with origin at WebGL canvas LOWER left;
+    var rect = ev.target.getBoundingClientRect();	// get canvas corners in pixels
+    var xp = ev.clientX - rect.left;									// x==0 at canvas left edge
+	  var yp = canvas.height - (ev.clientY - rect.top);	// y==0 at canvas bottom edge
+    var x = (xp - canvas.width/2)  / 		// move origin to center of canvas and
+  						 (canvas.width/2);		// normalize canvas to -1 <= x < +1,
+	  var y = (yp - canvas.height/2) /		//									-1 <= y < +1.
+							 (canvas.height/2);
+    eyeAngle+= (x-g_xMclik)*100;
+	// find how far we dragged the mouse:
+
+	  g_xMclik = x;											// Make next drag-measurement from here.
+	  g_yMclik = y;
+
+  var mvpMatrix = new Matrix4();
+  mvpMatrix.setPerspective(30, 1, 1, 100);
+  mvpMatrix.lookAt(15*Math.cos(Math.PI*eyeAngle/180), 3, 15*Math.sin(Math.PI*eyeAngle/180), 0, 0, 0, 0, 1, 0);
+  //mvpMatrix.lookAt(5, -5, 0, 0, 0, 0, 0, 0, 1);
+
+  // Pass the model view projection matrix to u_MvpMatrix
+  gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix.elements);
+  }); 
+	canvas.addEventListener("mouseup", (ev) => {
+    var rect = ev.target.getBoundingClientRect();	// get canvas corners in pixels
+    var xp = ev.clientX - rect.left;									// x==0 at canvas left edge
+	  var yp = canvas.height - (ev.clientY - rect.top);	// y==0 at canvas bottom edge
+  
+	// Convert to Canonical View Volume (CVV) coordinates too:
+    var x = (xp - canvas.width/2)  / 		// move origin to center of canvas and
+  						 (canvas.width/2);			// normalize canvas to -1 <= x < +1,
+	  var y = (yp - canvas.height/2) /		//										 -1 <= y < +1.
+							 (canvas.height/2);
+	
+	  g_isDrag = false;											
+  });	
+
   // Set the eye point and the viewing volume
   var mvpMatrix = new Matrix4();
   mvpMatrix.setPerspective(30, 1, 1, 100);
-  mvpMatrix.lookAt(10*Math.cos(Math.PI*eyeAngle/180), 3, 10*Math.sin(Math.PI*eyeAngle/180), 0, 0, 0, 0, 1, 0);
+  mvpMatrix.lookAt(15*Math.cos(Math.PI*eyeAngle/180), 3, 15*Math.sin(Math.PI*eyeAngle/180), 0, 0, 0, 0, 1, 0);
   //mvpMatrix.lookAt(5, -5, 0, 0, 0, 0, 0, 0, 1);
 
   // Pass the model view projection matrix to u_MvpMatrix

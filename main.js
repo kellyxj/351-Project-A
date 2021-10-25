@@ -165,6 +165,17 @@ function main() {
 	  g_isDrag = false;											
   });	
 
+  document.addEventListener("keyup", (e) => {
+    if(e.key === " ") {
+      if(masterSpeed > 0) {
+        masterSpeed = 0;
+      }
+      else {
+        masterSpeed = 1;
+      }
+    }
+  })
+
   // Set the eye point and the viewing volume
   var mvpMatrix = new Matrix4();
   mvpMatrix.setPerspective(30, 1, 1, 100);
@@ -206,23 +217,23 @@ function initVertexBuffers(gl) {
     verticesColors[i] = 0.4*Math.cos(Math.PI * i/18)//x coord
     verticesColors[i+1] = 1.0 //y coord
     verticesColors[i+2] = 0.4*-Math.sin(Math.PI * i/18) //z coord
-    verticesColors[i+3] = 153/255+i/360//R
-    verticesColors[i+4] = 50/255+i/360//G
-    verticesColors[i+5] = 204/255+i/360//B
-    //verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
-    //verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
-    //verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
+    //verticesColors[i+3] = 153/255+i/360//R
+    //verticesColors[i+4] = 50/255+i/360//G
+    //verticesColors[i+5] = 204/255+i/360//B
+    verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
+    verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
+    verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
   }
   for(i = 36; i < 72; i+=6){
     verticesColors[i] = 0.3*Math.cos(Math.PI * i/18) //x coord
     verticesColors[i+1] = -1.0//y coord
     verticesColors[i+2] = 0.3*-Math.sin(Math.PI * i/18) //z coord
-    verticesColors[i+3] = 153/255+i/360//R
-    verticesColors[i+4] = 50/255+i/360//G
-    verticesColors[i+5] = 204/255+i/360//B
-    //verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
-    //verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
-    //verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
+    //verticesColors[i+3] = 153/255+i/360//R
+    //verticesColors[i+4] = 50/255+i/360//G
+    //verticesColors[i+5] = 204/255+i/360//B
+    verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
+    verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
+    verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
   }
 
   //head segment
@@ -230,34 +241,34 @@ function initVertexBuffers(gl) {
     verticesColors[i] = Math.cos(Math.PI * (i-72)/30)//x coord
     verticesColors[i+1] = 1.0 //y coord
     verticesColors[i+2] = -Math.sin(Math.PI * (i-72)/30) //z coord
-    verticesColors[i+3] = 153/255+(i-72)/600//R
-    verticesColors[i+4] = 50/255+(i-72)/600//G
-    verticesColors[i+5] = 204/255+(i-72)/600//B
-    //verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
-    //verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
-    //verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
+    //verticesColors[i+3] = 153/255+(i-72)/600//R
+    //verticesColors[i+4] = 50/255+(i-72)/600//G
+    //verticesColors[i+5] = 204/255+(i-72)/600//B
+    verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
+    verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
+    verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
   }
   for(i = 132; i < 192; i+=6){
     verticesColors[i] = 0.9*Math.cos(Math.PI * (i-72)/30)//x coord
     verticesColors[i+1] = -1.0 //y coord
     verticesColors[i+2] = -0.9*Math.sin(Math.PI * (i-72)/30) //z coord
-    verticesColors[i+3] = 153/255+(i-72)/600//R
-    verticesColors[i+4] = 50/255+(i-72)/600//G
-    verticesColors[i+5] = 204/255+(i-72)/600//B
-    //verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
-    //verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
-    //verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
+    //verticesColors[i+3] = 153/255+(i-72)/600//R
+    //verticesColors[i+4] = 50/255+(i-72)/600//G
+    //verticesColors[i+5] = 204/255+(i-72)/600//B
+    verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
+    verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
+    verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
   }
   for(i = 192; i < 210; i +=6) {
     verticesColors[i] = 0.5*Math.cos(Math.PI * (i-192)/9)-0.5//x coord
     verticesColors[i+1] = Math.sin(Math.PI * (i-192)/9) //y coord
     verticesColors[i+2] = 0 //z coord
-    verticesColors[i+3] = 153/255+(i-72)/600//R
-    verticesColors[i+4] = 50/255+(i-72)/600//G
-    verticesColors[i+5] = 204/255+(i-72)/600//B
-    //verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
-    //verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
-    //verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
+    //verticesColors[i+3] = 153/255+(i-72)/600//R
+    //verticesColors[i+4] = 50/255+(i-72)/600//G
+    //verticesColors[i+5] = 204/255+(i-72)/600//B
+    verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
+    verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
+    verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
   }
   // Indices of the vertices
   var indices = new Uint8Array([

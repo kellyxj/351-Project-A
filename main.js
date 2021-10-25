@@ -6,7 +6,7 @@ var FSHADER_SOURCE = glsl.file("./shaders/fragmentShader.frag");
 var ANGLE_STEP = [45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0];
 var masterSpeed = 1.0;
 const armSpeeds = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
-var eyeAngle = 0;
+var eyeAngle = 180;
 
 //controls movement of head
 var headScale = 1.0;
@@ -16,6 +16,8 @@ var headScaleStep = 0.1;
 var bodyScale = 1.0;
 var bodyScaleStep = 0.0;
 var puffed = false;
+
+var pufferRotation = 0;
 
 var finAngle = 0;
 var finAngleStep = 45;
@@ -253,6 +255,9 @@ function initVertexBuffers(gl) {
     verticesColors[i+3] = 153/255+(i-72)/600//R
     verticesColors[i+4] = 50/255+(i-72)/600//G
     verticesColors[i+5] = 204/255+(i-72)/600//B
+    //verticesColors[i+3] = (Math.sin(i*10000))%1.0//R
+    //verticesColors[i+4] = (Math.cos(i*10000)*43758.5453)%1.0//G
+    //verticesColors[i+5] = (Math.cos(i*10000)*12.9898)%1.0//B
   }
   // Indices of the vertices
   var indices = new Uint8Array([
@@ -332,76 +337,78 @@ function drawArms(gl, n, currentAngles, modelMatrix, u_ModelMatrix) {
   //==============================================================================
     // Clear <canvas>
     gl.clear(gl.COLOR_BUFFER_BIT);
+    modelMatrix.setTranslate(0, -1+headScale, 0);
     //draw body using layers of stacked prisms
     for(i = 0; i < 8; i++) {
+      pushMatrix(modelMatrix);
       //start first arm segment
-      modelMatrix.setTranslate(0.0,-1.0+headScale, 0.0);
+        modelMatrix.rotate(45*i, 0, 1, 0);
 
-      modelMatrix.rotate(45*i, 0, 1, 0);
+        modelMatrix.translate(-0.4, 0, 0);
 
-      modelMatrix.translate(-0.4, 0, 0);
+        modelMatrix.scale(0.4, 0.4, 0.4);
 
-      modelMatrix.scale(0.4, 0.4, 0.4);
+        modelMatrix.rotate(currentAngles[i], 0, 0, 1);
 
-      modelMatrix.rotate(currentAngles[i], 0, 0, 1);
+        modelMatrix.translate(0.0, -1.0 ,0.0);		
 
-      modelMatrix.translate(0.0, -1.0 ,0.0);		
+        gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-      gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+        gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
 
-      gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
+        //start second arm segment
+        modelMatrix.translate(0.0, -0.9, 0);
 
-      //start second arm segment
-      modelMatrix.translate(0.0, -0.9, 0);
+        modelMatrix.scale(0.75, 0.75, 0.75);
 
-      modelMatrix.scale(0.75, 0.75, 0.75);
+        modelMatrix.rotate(-currentAngles[i]*0.3, 0,0,1);
 
-      modelMatrix.rotate(-currentAngles[i]*0.3, 0,0,1);
+        modelMatrix.translate(0.0, -1.0, 0);
 
-      modelMatrix.translate(0.0, -1.0, 0);
+        gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-      gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+        gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
 
-      gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
+        //start third arm segment
+        modelMatrix.translate(0.0, -0.9, 0);
 
-      //start third arm segment
-      modelMatrix.translate(0.0, -0.9, 0);
+        modelMatrix.scale(0.75, 0.75, 0.75);
 
-      modelMatrix.scale(0.75, 0.75, 0.75);
+        modelMatrix.rotate(-currentAngles[i]*0.5, 0, 0, 1);
 
-      modelMatrix.rotate(-currentAngles[i]*0.5, 0, 0, 1);
+        modelMatrix.translate(0.0, -1.0, 0);
 
-      modelMatrix.translate(0.0, -1.0, 0);
+        gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-      gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+        gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
 
-      gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
+        //start fourth arm segment
+        modelMatrix.translate(0.0, -0.9, 0);
 
-      //start fourth arm segment
-      modelMatrix.translate(0.0, -0.9, 0);
+        modelMatrix.scale(0.75, 0.75, 0.75);
 
-      modelMatrix.scale(0.75, 0.75, 0.75);
+        modelMatrix.rotate(-currentAngles[i]*0.3, 0, 0, 1);
 
-      modelMatrix.rotate(-currentAngles[i]*0.3, 0, 0, 1);
+        modelMatrix.translate(0.0, -1.0, 0);
 
-      modelMatrix.translate(0.0, -1.0, 0);
+        gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-      gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+        gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
 
-      gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
+        //fifth and final arm segment
+        modelMatrix.translate(0.0, -0.9, 0);
 
-      //fifth and final arm segment
-      modelMatrix.translate(0.0, -0.9, 0);
+        modelMatrix.scale(0.75, 0.75, 0.75);
 
-      modelMatrix.scale(0.75, 0.75, 0.75);
+        modelMatrix.rotate(currentAngles[i]*0.1, 0, 0, 1);
 
-      modelMatrix.rotate(currentAngles[i]*0.1, 0, 0, 1);
+        modelMatrix.translate(0.0, -1.0, 0);
 
-      modelMatrix.translate(0.0, -1.0, 0);
+        gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-      gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+        gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
 
-      gl.drawElements(gl.TRIANGLES, 60, gl.UNSIGNED_BYTE, 0);
+      modelMatrix = popMatrix();
     }
 }
 
@@ -495,7 +502,10 @@ function drawHead(gl, n, headScale, modelMatrix, u_ModelMatrix) {
 }
 
 function drawPuffer(gl, n, bodyScale, modelMatrix, u_ModelMatrix) {
-  modelMatrix.setTranslate(-2, 0, -2);
+  modelMatrix.setIdentity();
+  modelMatrix.rotate(pufferRotation, 0, 1, 0);
+  modelMatrix.translate(-2, 0, -2);
+  modelMatrix.rotate(45, 0, 1, 0);
 
   pushMatrix(modelMatrix);
   //cone for bottom of sphere
@@ -507,7 +517,7 @@ function drawPuffer(gl, n, bodyScale, modelMatrix, u_ModelMatrix) {
 
     gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
 
-    gl.drawElements(gl.TRIANGLES, 30, gl.UNSIGNED_BYTE, 174)
+    gl.drawElements(gl.TRIANGLES, 30, gl.UNSIGNED_BYTE, 174);
   //start drawing head by stacking prisms
     modelMatrix.scale(1, -10, 1);
     modelMatrix.translate(0.0, .15, 0.0);
@@ -606,7 +616,7 @@ function drawPuffer(gl, n, bodyScale, modelMatrix, u_ModelMatrix) {
 
     modelMatrix.rotate(90, 0, 1, 0);
 
-    modelMatrix.translate(-bodyScale, 0, 0);
+    modelMatrix.translate(-0.9*bodyScale, 0, 0);
 
     modelMatrix.rotate(finAngle, 0, 1, 0);
 
@@ -620,7 +630,7 @@ function drawPuffer(gl, n, bodyScale, modelMatrix, u_ModelMatrix) {
 
     modelMatrix.rotate(-90, 0, 1, 0);
 
-    modelMatrix.translate(-bodyScale, 0, 0);
+    modelMatrix.translate(-0.9*bodyScale, 0, 0);
 
     modelMatrix.rotate(-finAngle, 0, 1, 0);
 
@@ -670,7 +680,15 @@ function animate(angles) {
 
   if(finAngle >   45.0 && finAngleStep > 0) finAngleStep = -finAngleStep;
   if(finAngle <  -45.0 && finAngleStep < 0) finAngleStep = -finAngleStep;
-  finAngle = (finAngle+finAngleStep*elapsed/1000) %360;
+  finAngle = (finAngle+masterSpeed*finAngleStep*elapsed/1000) %360;
+
+  if(!puffed) {
+    pufferRotation = (pufferRotation+masterSpeed*15*elapsed/1000)%360;
+  }
+  else {
+    pufferRotation = (pufferRotation+masterSpeed*3*elapsed/1000)%360;
+  }
+  
   return angles
 }
     
